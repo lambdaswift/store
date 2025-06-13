@@ -22,9 +22,18 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "Store"),
+        .target(
+            name: "StoreExamples",
+            dependencies: ["Store"],
+            path: "Sources/StoreExamples"
+        ),
         .testTarget(
             name: "StoreTests",
             dependencies: ["Store"]
+        ),
+        .testTarget(
+            name: "StoreExamplesTests",
+            dependencies: ["StoreExamples", "Store"]
         ),
     ]
 )
