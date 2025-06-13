@@ -50,9 +50,10 @@ enum CounterAction: Equatable, Sendable {
     await store.dispatch(.decrement)
     #expect(await store.currentState.value == 1)
     
-    // Test async increment - effects run during dispatch, so we'll see the result after
+    // Test async increment
     await store.dispatch(.incrementAsync)
-    // Effect runs during dispatch and completes
+    await store.waitForEffects()
+    // After waiting for effects, the increment should have happened
     #expect(await store.currentState.value == 2)
 }
 
@@ -144,6 +145,7 @@ enum CounterAction: Equatable, Sendable {
     
     // Now increment to 5, which should trigger the limit effect
     await store.dispatch(.increment)
+    await store.waitForEffects()
     
     // Should have triggered limit effect and decremented back to 4
     #expect(await store.currentState.value == 4)

@@ -154,18 +154,21 @@ enum TestAction: Equatable, Sendable {
     )
     
     await store.dispatch(.increment)
+    await store.waitForEffects()
     #expect(effectCalled)
     #expect(await store.currentState.count == 1)
     #expect(await store.currentState.message == "")
     
     effectCalled = false
     await store.dispatch(.increment)
+    await store.waitForEffects()
     #expect(effectCalled)
     #expect(await store.currentState.count == 2)
     #expect(await store.currentState.message == "")
     
     effectCalled = false
     await store.dispatch(.increment)
+    await store.waitForEffects()
     #expect(effectCalled)
     #expect(await store.currentState.count == 3)
     #expect(await store.currentState.message == "Count is 3")
@@ -209,12 +212,14 @@ enum TestAction: Equatable, Sendable {
     )
     
     await store.dispatch(.increment)
+    await store.waitForEffects()
     #expect(effect1Called)
     #expect(effect2Called)
     
     effect1Called = false
     effect2Called = false
     await store.dispatch(.increment)
+    await store.waitForEffects()
     #expect(effect1Called)
     #expect(effect2Called)
     #expect(await store.currentState.message == "Two!")

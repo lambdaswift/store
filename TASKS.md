@@ -6,9 +6,6 @@ This document tracks the implementation progress of features for the Store Swift
 ## Task List
 
 ### Pending
-- [ ] Shopping Cart Example - E-commerce cart with add/remove items, quantities, and price calculations
-- [ ] Search with Debounce Example - Live search that debounces API calls and handles cancellation
-- [ ] Multi-Step Wizard Example - Multi-page form with step validation and state accumulation
 - [ ] Real-time Chat Example - WebSocket-based chat with message queue and optimistic updates
 - [ ] Undo/Redo Stack Example - Full undo/redo support with state snapshots and history
 - [ ] Pagination Example - Infinite scroll with efficient data loading and caching
@@ -17,7 +14,7 @@ This document tracks the implementation progress of features for the Store Swift
 - [ ] Offline Queue Example - Queue actions offline and sync when connection returns
 
 ### In Progress
-- [ ] Multi-Step Wizard Example - Multi-page form with step validation and state accumulation
+- [ ] None
 
 ### Completed
 - [x] Counter Example - Simple increment/decrement
@@ -25,6 +22,7 @@ This document tracks the implementation progress of features for the Store Swift
 - [x] Form Validation Example - Real-time form validation with email, password strength, and error states
 - [x] Shopping Cart Example - E-commerce cart with add/remove items, quantities, and price calculations
 - [x] Search with Debounce Example - Live search that debounces API calls and handles cancellation
+- [x] Multi-Step Wizard Example - Multi-page form with step validation and state accumulation
 
 ## Implementation Process
 1. Implement the feature

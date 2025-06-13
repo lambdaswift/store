@@ -122,8 +122,9 @@ enum TodoAction: Equatable, Sendable {
     
     // Test loading todos
     await store.dispatch(.loadTodos)
+    await store.waitForEffects()
     
-    // Effects run during dispatch, so by the time dispatch returns, todos are loaded
+    // After waiting for effects, todos should be loaded
     #expect(await store.currentState.isLoading == false)
     #expect(await store.currentState.todos.count == 3)
     
