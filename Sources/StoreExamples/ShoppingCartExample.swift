@@ -350,6 +350,7 @@ struct ProductRow: View {
                         Image(systemName: "minus.circle.fill")
                             .foregroundColor(.red)
                     }
+                    .buttonStyle(.plain)
                     
                     Text("\(cartItem.quantity)")
                         .font(.headline)
@@ -361,6 +362,7 @@ struct ProductRow: View {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(.green)
                     }
+                    .buttonStyle(.plain)
                 }
             } else {
                 Button(action: {
@@ -544,6 +546,7 @@ struct CartItemRow: View {
                         Image(systemName: "minus.circle.fill")
                             .foregroundColor(.red)
                     }
+                    .buttonStyle(.plain)
                     
                     Text("\(item.quantity)")
                         .font(.headline)
@@ -555,6 +558,7 @@ struct CartItemRow: View {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(.green)
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
