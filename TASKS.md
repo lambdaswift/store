@@ -6,8 +6,6 @@ This document tracks the implementation progress of features for the Store Swift
 ## Task List
 
 ### Pending
-- [ ] Real-time Chat Example - WebSocket-based chat with message queue and optimistic updates
-- [ ] Undo/Redo Stack Example - Full undo/redo support with state snapshots and history
 - [ ] Pagination Example - Infinite scroll with efficient data loading and caching
 - [ ] Authentication Flow Example - Complete auth with login, token refresh, and secure storage
 - [ ] Timer/Stopwatch Example - Stopwatch with start/stop/pause and lap times
@@ -23,6 +21,8 @@ This document tracks the implementation progress of features for the Store Swift
 - [x] Shopping Cart Example - E-commerce cart with add/remove items, quantities, and price calculations
 - [x] Search with Debounce Example - Live search that debounces API calls and handles cancellation
 - [x] Multi-Step Wizard Example - Multi-page form with step validation and state accumulation
+- [x] Real-time Chat Example - WebSocket-based chat with message queue and optimistic updates
+- [x] Undo/Redo Stack Example - Full undo/redo support with state snapshots and history
 
 ## Implementation Process
 1. Implement the feature
