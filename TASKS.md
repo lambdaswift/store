@@ -6,7 +6,6 @@ This document tracks the implementation progress of features for the Store Swift
 ## Task List
 
 ### Pending
-- [ ] Pagination Example - Infinite scroll with efficient data loading and caching
 - [ ] Authentication Flow Example - Complete auth with login, token refresh, and secure storage
 - [ ] Timer/Stopwatch Example - Stopwatch with start/stop/pause and lap times
 - [ ] Offline Queue Example - Queue actions offline and sync when connection returns
@@ -22,7 +21,8 @@ This document tracks the implementation progress of features for the Store Swift
 - [x] Search with Debounce Example - Live search that debounces API calls and handles cancellation
 - [x] Multi-Step Wizard Example - Multi-page form with step validation and state accumulation
 - [x] Real-time Chat Example - WebSocket-based chat with message queue and optimistic updates
-- [x] Undo/Redo Stack Example - Full undo/redo support with state snapshots and history
+- [x] Undo/Redo Stack Example - Text editor with undo/redo stack functionality
+- [x] Pagination Example - Infinite scroll with efficient data loading and caching
 
 ## Implementation Process
 1. Implement the feature

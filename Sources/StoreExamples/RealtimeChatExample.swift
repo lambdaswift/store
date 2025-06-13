@@ -341,7 +341,6 @@ public func realtimeChatEffects(
             "I'll check it out",
             "See you tomorrow!",
             "Got it, thanks!",
-            "Sure thing!"
         ]
         
         // Simulate typing first
