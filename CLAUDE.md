@@ -42,6 +42,20 @@ The package follows the standard Swift Package Manager structure:
   - Tests use `@Test` attribute and `#expect` assertions
   - Import test modules with `@testable import Store`
 
+## Feature Implementation Process
+1. Implement the feature
+2. Write comprehensive tests
+3. Ensure all tests pass
+4. Commit changes
+5. Update this TASKS.md
+6. Move to next feature
+
+## Notes
+- Each feature should have corresponding tests
+- Tests should use Swift Testing framework (not XCTest)
+- Ensure compatibility with Swift 6.1+
+- Follow existing code conventions in the codebase
+
 ## Testing Notes
 
 This project uses the new Swift Testing framework instead of XCTest. When writing tests:
