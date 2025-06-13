@@ -15,7 +15,10 @@ let package = Package(
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "Store",
-            targets: ["Store"]),
+            targets: ["Store", "StoreExamples"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/lambdaswift/dependencies", from: "0.0.2")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -24,7 +27,10 @@ let package = Package(
             name: "Store"),
         .target(
             name: "StoreExamples",
-            dependencies: ["Store"],
+            dependencies: [
+                "Store",
+                .product(name: "Dependencies", package: "dependencies")
+            ],
             path: "Sources/StoreExamples"
         ),
         .testTarget(

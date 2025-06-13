@@ -1,0 +1,15 @@
+{
+  "originHash" : "3e910950017586038aae1eb609b7764657d8331d8699a922fc0d9c2128d40e1d",
+  "pins" : [
+    {
+      "identity" : "dependencies",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lambdaswift/dependencies",
+      "state" : {
+        "revision" : "3d0fb1263587a1351e3419dcdbfc4dde2ebc834d",
+        "version" : "0.0.2"
+      }
+    }
+  ],
+  "version" : 3
+}
