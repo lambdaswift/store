@@ -22,7 +22,7 @@ This document tracks the implementation progress of features for the Store Swift
 - [x] Search with Debounce Example - Live search that debounces API calls and handles cancellation
 - [x] Multi-Step Wizard Example - Multi-page form with step validation and state accumulation
 - [x] Real-time Chat Example - WebSocket-based chat with message queue and optimistic updates
-- [x] Undo/Redo Stack Example - Full undo/redo support with state snapshots and history
+- [x] Undo/Redo Stack Example - Text editor with undo/redo stack functionality
 
 ## Implementation Process
 1. Implement the feature
