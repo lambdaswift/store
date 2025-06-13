@@ -219,3 +219,140 @@ enum TestAction: Equatable, Sendable {
     #expect(effect2Called)
     #expect(await store.currentState.message == "Two!")
 }
+
+@Test func testStateObservation() async throws {
+    let initialState = TestState()
+    let reducer: Reducer<TestState, TestAction> = { state, action in
+        switch action {
+        case .increment:
+            state.count += 1
+        case .decrement:
+            state.count -= 1
+        case .setMessage(let message):
+            state.message = message
+        }
+    }
+    
+    let store = await Store(
+        initialState: initialState,
+        reducer: reducer
+    )
+    
+    var receivedStates: [TestState] = []
+    let task = Task {
+        for await state in await store.states {
+            receivedStates.append(state)
+            if receivedStates.count >= 4 {
+                break
+            }
+        }
+    }
+    
+    // Give the task time to start and receive initial state
+    try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+    
+    await store.dispatch(.increment)
+    await store.dispatch(.setMessage("Hello"))
+    await store.dispatch(.increment)
+    
+    await task.value
+    
+    #expect(receivedStates.count == 4)
+    #expect(receivedStates[0] == TestState(count: 0, message: ""))  // Initial state
+    #expect(receivedStates[1] == TestState(count: 1, message: ""))  // After first increment
+    #expect(receivedStates[2] == TestState(count: 1, message: "Hello"))  // After setMessage
+    #expect(receivedStates[3] == TestState(count: 2, message: "Hello"))  // After second increment
+}
+
+@Test func testMultipleObservers() async throws {
+    let initialState = TestState()
+    let reducer: Reducer<TestState, TestAction> = { state, action in
+        switch action {
+        case .increment:
+            state.count += 1
+        default:
+            break
+        }
+    }
+    
+    let store = await Store(
+        initialState: initialState,
+        reducer: reducer
+    )
+    
+    var observer1States: [TestState] = []
+    var observer2States: [TestState] = []
+    
+    let task1 = Task {
+        for await state in await store.states {
+            observer1States.append(state)
+            if observer1States.count >= 3 {
+                break
+            }
+        }
+    }
+    
+    let task2 = Task {
+        for await state in await store.states {
+            observer2States.append(state)
+            if observer2States.count >= 3 {
+                break
+            }
+        }
+    }
+    
+    // Give the tasks time to start and receive initial state
+    try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+    
+    await store.dispatch(.increment)
+    await store.dispatch(.increment)
+    
+    await task1.value
+    await task2.value
+    
+    #expect(observer1States.count == 3)
+    #expect(observer2States.count == 3)
+    #expect(observer1States == observer2States)
+}
+
+@Test func testObserverTermination() async throws {
+    let initialState = TestState()
+    let reducer: Reducer<TestState, TestAction> = { state, action in
+        switch action {
+        case .increment:
+            state.count += 1
+        default:
+            break
+        }
+    }
+    
+    let store = await Store(
+        initialState: initialState,
+        reducer: reducer
+    )
+    
+    var receivedStates: [TestState] = []
+    let task = Task {
+        for await state in await store.states {
+            receivedStates.append(state)
+            if receivedStates.count >= 2 {
+                break  // Terminate early
+            }
+        }
+    }
+    
+    // Give the task time to start and receive initial state
+    try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+    
+    await store.dispatch(.increment)
+    await task.value  // Wait for task to complete
+    
+    // Dispatch more actions after observer terminated
+    await store.dispatch(.increment)
+    await store.dispatch(.increment)
+    
+    // Give time for any unexpected states to arrive
+    try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+    
+    #expect(receivedStates.count == 2)  // Should only have initial + 1 update
+}

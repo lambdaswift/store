@@ -12,13 +12,23 @@ public typealias Effect<State, Action> = (Action, State) async -> Action?
 @MainActor
 public final class Store<State, Action> where State: Sendable, Action: Sendable {
     /// The current state of the store.
-    private(set) public var currentState: State
+    private(set) public var currentState: State {
+        didSet {
+            // Notify all subscribers of state changes
+            for continuation in continuations.values {
+                continuation.yield(currentState)
+            }
+        }
+    }
     
     /// The reducer function that handles state mutations.
     private let reducer: Reducer<State, Action>
     
     /// The array of effects that handle side effects.
     private let effects: [Effect<State, Action>]
+    
+    /// Storage for state observation continuations
+    private var continuations: [UUID: AsyncStream<State>.Continuation] = [:]
     
     /// Creates a new store with the given initial state, reducer, and effects.
     /// - Parameters:
@@ -46,6 +56,27 @@ public final class Store<State, Action> where State: Sendable, Action: Sendable 
             if let nextAction = await effect(action, currentState) {
                 // Recursively dispatch any actions returned by effects
                 await dispatch(nextAction)
+            }
+        }
+    }
+    
+    /// An AsyncSequence that emits the current state whenever it changes.
+    /// The sequence includes the current state immediately upon subscription.
+    public var states: AsyncStream<State> {
+        AsyncStream { continuation in
+            let id = UUID()
+            
+            // Send the current state immediately
+            continuation.yield(currentState)
+            
+            // Store the continuation for future updates
+            continuations[id] = continuation
+            
+            // Set up termination handler to clean up
+            continuation.onTermination = { [weak self] _ in
+                Task { @MainActor in
+                    self?.continuations.removeValue(forKey: id)
+                }
             }
         }
     }
