@@ -94,6 +94,8 @@ public func asyncCounterEffects(
     case .delayedIncrement(let seconds):
         do {
             try await clock.sleep(.seconds(seconds))
+            // Check if task was cancelled during sleep
+            guard !Task.isCancelled else { return nil }
             return .increment
         } catch {
             return nil
@@ -103,6 +105,8 @@ public func asyncCounterEffects(
         // Start incrementing every second
         do {
             try await clock.sleep(.seconds(1))
+            // Check if task was cancelled during sleep
+            guard !Task.isCancelled else { return nil }
             if state.isIncrementing {
                 return .incrementBy(1)
             }
@@ -114,6 +118,8 @@ public func asyncCounterEffects(
         // Continue auto-incrementing
         do {
             try await clock.sleep(.seconds(1))
+            // Check if task was cancelled during sleep
+            guard !Task.isCancelled else { return nil }
             if state.isIncrementing {
                 return .incrementBy(1)
             }
@@ -134,13 +140,22 @@ public func asyncCounterEffects(
 public func createAsyncCounterStore(
     initialCount: Int = 0
 ) -> Store<AsyncCounterState, AsyncCounterAction> {
-    Store(
+    let store = Store(
         initialState: AsyncCounterState(count: initialCount),
         reducer: asyncCounterReducer,
         effects: [{ action, state in
             await asyncCounterEffects(action: action, state: state)
         }]
     )
+    
+    // Set up effect cancellation for reset and stopAutoIncrement actions
+    store.beforeDispatch = { action in
+        if action == .reset || action == .stopAutoIncrement {
+            store.cancelEffects()
+        }
+    }
+    
+    return store
 }
 
 // MARK: - SwiftUI View

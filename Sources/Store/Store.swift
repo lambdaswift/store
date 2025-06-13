@@ -35,6 +35,9 @@ public final class Store<State, Action> where State: Sendable, Action: Sendable 
     /// Storage for active effect tasks
     private var effectTasks: Set<Task<Void, Never>> = []
     
+    /// Optional handler called before dispatching actions
+    public var beforeDispatch: ((Action) -> Void)?
+    
     /// Creates a new store with the given initial state, reducer, and effects.
     /// - Parameters:
     ///   - initialState: The initial state of the store.
@@ -53,15 +56,40 @@ public final class Store<State, Action> where State: Sendable, Action: Sendable 
     /// Dispatches an action to the store, which triggers the reducer and any associated effects.
     /// - Parameter action: The action to dispatch.
     public func dispatch(_ action: Action) async {
+        // Call beforeDispatch handler if present
+        beforeDispatch?(action)
+        
         // Apply the reducer to update the state
         reducer(&currentState, action)
         
-        // Execute effects sequentially to avoid sendable issues
+        // Execute effects without waiting, tracking them for cancellation
         for effect in effects {
-            if let nextAction = await effect(action, currentState) {
-                // Recursively dispatch any actions returned by effects
-                await dispatch(nextAction)
+            let task = Task { [weak self] in
+                guard let self else { return }
+                
+                if let nextAction = await effect(action, self.currentState) {
+                    guard !Task.isCancelled else { return }
+                    await self.dispatch(nextAction)
+                }
             }
+            
+            effectTasks.insert(task)
+            
+            // Clean up when task completes
+            Task { [weak self] in
+                _ = await task.value
+                self?.effectTasks.remove(task)
+            }
+        }
+    }
+    
+    /// Waits for all currently running effects to complete.
+    /// This is useful in tests or when you need to ensure all side effects have finished.
+    public func waitForEffects() async {
+        // Create a snapshot of current tasks to avoid issues with concurrent modification
+        let tasks = Array(effectTasks)
+        for task in tasks {
+            _ = await task.value
         }
     }
     
@@ -97,7 +125,7 @@ public final class Store<State, Action> where State: Sendable, Action: Sendable 
         // Clean up when task completes
         Task { [weak self] in
             _ = await task.value
-            await self?.effectTasks.remove(task)
+            self?.effectTasks.remove(task)
         }
         
         return task

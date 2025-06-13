@@ -63,6 +63,7 @@ struct AsyncCounterExampleTests {
             let store = createAsyncCounterStore()
             
             await store.dispatch(.delayedIncrement(seconds: 2.0))
+            await store.waitForEffects()
             
             // Should have incremented after delay
             #expect(store.currentState.count == 1)
@@ -91,6 +92,8 @@ struct AsyncCounterExampleTests {
                     await store.dispatch(.delayedIncrement(seconds: 1.0))
                 }
             }
+            
+            await store.waitForEffects()
             
             // Both should complete
             #expect(store.currentState.count == 2)
