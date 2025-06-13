@@ -41,6 +41,7 @@ The package follows the standard Swift Package Manager structure:
 - **Tests/StoreTests/**: Contains unit tests using the Swift Testing framework (not XCTest)
   - Tests use `@Test` attribute and `#expect` assertions
   - Import test modules with `@testable import Store`
+- Use the already added `Dependencies` package dependency for dependency injection
 
 ## Feature Implementation Process
 1. Implement the feature
