@@ -17,11 +17,12 @@ This document tracks the implementation progress of features for the Store Swift
 - [ ] Offline Queue Example - Queue actions offline and sync when connection returns
 
 ### In Progress
-- [ ] Form Validation Example - Real-time form validation with email, password strength, and error states
+- [ ] Shopping Cart Example - E-commerce cart with add/remove items, quantities, and price calculations
 
 ### Completed
 - [x] Counter Example - Simple increment/decrement
 - [x] AsyncCounter Example - Async actions and effects
+- [x] Form Validation Example - Real-time form validation with email, password strength, and error states
 
 ## Implementation Process
 1. Implement the feature
