@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 /// A reducer is a function that takes the current state and an action, and mutates the state based on the action.
 /// The state is passed as `inout` to allow direct mutation.
@@ -10,6 +11,7 @@ public typealias Effect<State, Action> = (Action, State) async -> Action?
 
 /// A store holds the application state and provides methods to dispatch actions and observe state changes.
 @MainActor
+@Observable
 public final class Store<State, Action> where State: Sendable, Action: Sendable {
     /// The current state of the store.
     private(set) public var currentState: State {

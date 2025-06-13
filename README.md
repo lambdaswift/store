@@ -12,6 +12,7 @@ Store provides a lightweight state management solution that enforces unidirectio
 - ✅ State mutations only through reducers
 - ✅ Async effects with Swift concurrency
 - ✅ Cancellable effects
+- ✅ SwiftUI integration with `@Observable`
 - ✅ Simple, focused API
 - ✅ No dependency injection complexity
 - ✅ Full testability
@@ -109,6 +110,58 @@ await store.dispatch(.fetchUser(id: "123"))
 for await state in store.states {
     print("Count: \(state.count)")
     print("User: \(state.user?.name ?? "None")")
+}
+```
+
+## SwiftUI Integration
+
+Store is `@Observable`, making it seamlessly integrate with SwiftUI views:
+
+```swift
+import SwiftUI
+
+struct ContentView: View {
+    let store: Store<AppState, AppAction>
+    
+    var body: some View {
+        VStack {
+            Text("Count: \(store.currentState.count)")
+            
+            HStack {
+                Button("Decrement") {
+                    Task {
+                        await store.dispatch(.decrement)
+                    }
+                }
+                
+                Button("Increment") {
+                    Task {
+                        await store.dispatch(.increment)
+                    }
+                }
+            }
+            
+            if store.currentState.isLoading {
+                ProgressView()
+            }
+        }
+    }
+}
+
+// In your App
+@main
+struct MyApp: App {
+    @State private var store = Store(
+        initialState: AppState(),
+        reducer: appReducer,
+        effects: [userEffect]
+    )
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView(store: store)
+        }
+    }
 }
 ```
 
