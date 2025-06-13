@@ -17,12 +17,14 @@ This document tracks the implementation progress of features for the Store Swift
 - [ ] Offline Queue Example - Queue actions offline and sync when connection returns
 
 ### In Progress
-- [ ] Shopping Cart Example - E-commerce cart with add/remove items, quantities, and price calculations
+- [ ] Multi-Step Wizard Example - Multi-page form with step validation and state accumulation
 
 ### Completed
 - [x] Counter Example - Simple increment/decrement
 - [x] AsyncCounter Example - Async actions and effects
 - [x] Form Validation Example - Real-time form validation with email, password strength, and error states
+- [x] Shopping Cart Example - E-commerce cart with add/remove items, quantities, and price calculations
+- [x] Search with Debounce Example - Live search that debounces API calls and handles cancellation
 
 ## Implementation Process
 1. Implement the feature
