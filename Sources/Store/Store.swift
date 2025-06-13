@@ -10,7 +10,7 @@ public typealias Effect<State, Action> = (Action, State) async -> Action?
 
 /// A store holds the application state and provides methods to dispatch actions and observe state changes.
 @MainActor
-public final class Store<State, Action> {
+public final class Store<State, Action> where State: Sendable, Action: Sendable {
     /// The current state of the store.
     private(set) public var currentState: State
     
@@ -33,5 +33,20 @@ public final class Store<State, Action> {
         self.currentState = initialState
         self.reducer = reducer
         self.effects = effects
+    }
+    
+    /// Dispatches an action to the store, which triggers the reducer and any associated effects.
+    /// - Parameter action: The action to dispatch.
+    public func dispatch(_ action: Action) async {
+        // Apply the reducer to update the state
+        reducer(&currentState, action)
+        
+        // Execute effects
+        for effect in effects {
+            if let nextAction = await effect(action, currentState) {
+                // Recursively dispatch any actions returned by effects
+                await dispatch(nextAction)
+            }
+        }
     }
 }

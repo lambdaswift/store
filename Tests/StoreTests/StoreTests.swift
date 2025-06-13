@@ -1,12 +1,12 @@
 import Testing
 @testable import Store
 
-struct TestState: Equatable {
+struct TestState: Equatable, Sendable {
     var count: Int = 0
     var message: String = ""
 }
 
-enum TestAction: Equatable {
+enum TestAction: Equatable, Sendable {
     case increment
     case decrement
     case setMessage(String)
@@ -90,4 +90,132 @@ enum TestAction: Equatable {
     )
     
     #expect(await store.currentState == initialState)
+}
+
+@Test func testDispatchUpdatesState() async throws {
+    let initialState = TestState()
+    let reducer: Reducer<TestState, TestAction> = { state, action in
+        switch action {
+        case .increment:
+            state.count += 1
+        case .decrement:
+            state.count -= 1
+        case .setMessage(let message):
+            state.message = message
+        }
+    }
+    
+    let store = await Store(
+        initialState: initialState,
+        reducer: reducer
+    )
+    
+    await store.dispatch(.increment)
+    #expect(await store.currentState.count == 1)
+    
+    await store.dispatch(.increment)
+    #expect(await store.currentState.count == 2)
+    
+    await store.dispatch(.decrement)
+    #expect(await store.currentState.count == 1)
+    
+    await store.dispatch(.setMessage("Hello"))
+    #expect(await store.currentState.message == "Hello")
+}
+
+@Test func testDispatchWithEffects() async throws {
+    let initialState = TestState()
+    let reducer: Reducer<TestState, TestAction> = { state, action in
+        switch action {
+        case .increment:
+            state.count += 1
+        case .decrement:
+            state.count -= 1
+        case .setMessage(let message):
+            state.message = message
+        }
+    }
+    
+    var effectCalled = false
+    let effect: Effect<TestState, TestAction> = { action, state in
+        effectCalled = true
+        switch action {
+        case .increment where state.count >= 3:
+            return .setMessage("Count is \(state.count)")
+        default:
+            return nil
+        }
+    }
+    
+    let store = await Store(
+        initialState: initialState,
+        reducer: reducer,
+        effects: [effect]
+    )
+    
+    await store.dispatch(.increment)
+    #expect(effectCalled)
+    #expect(await store.currentState.count == 1)
+    #expect(await store.currentState.message == "")
+    
+    effectCalled = false
+    await store.dispatch(.increment)
+    #expect(effectCalled)
+    #expect(await store.currentState.count == 2)
+    #expect(await store.currentState.message == "")
+    
+    effectCalled = false
+    await store.dispatch(.increment)
+    #expect(effectCalled)
+    #expect(await store.currentState.count == 3)
+    #expect(await store.currentState.message == "Count is 3")
+}
+
+@Test func testMultipleEffects() async throws {
+    let initialState = TestState()
+    let reducer: Reducer<TestState, TestAction> = { state, action in
+        switch action {
+        case .increment:
+            state.count += 1
+        case .decrement:
+            state.count -= 1
+        case .setMessage(let message):
+            state.message = message
+        }
+    }
+    
+    var effect1Called = false
+    var effect2Called = false
+    
+    let effect1: Effect<TestState, TestAction> = { action, state in
+        effect1Called = true
+        return nil
+    }
+    
+    let effect2: Effect<TestState, TestAction> = { action, state in
+        effect2Called = true
+        switch action {
+        case .increment where state.count == 2:
+            return .setMessage("Two!")
+        default:
+            return nil
+        }
+    }
+    
+    let store = await Store(
+        initialState: initialState,
+        reducer: reducer,
+        effects: [effect1, effect2]
+    )
+    
+    await store.dispatch(.increment)
+    #expect(effect1Called)
+    #expect(effect2Called)
+    
+    effect1Called = false
+    effect2Called = false
+    await store.dispatch(.increment)
+    #expect(effect1Called)
+    #expect(effect2Called)
+    #expect(await store.currentState.message == "Two!")
 }
