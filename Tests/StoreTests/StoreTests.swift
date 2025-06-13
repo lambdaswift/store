@@ -356,3 +356,146 @@ enum TestAction: Equatable, Sendable {
     
     #expect(receivedStates.count == 2)  // Should only have initial + 1 update
 }
+
+@Test func testEffectCancellation() async throws {
+    let initialState = TestState()
+    let reducer: Reducer<TestState, TestAction> = { state, action in
+        switch action {
+        case .increment:
+            state.count += 1
+        case .setMessage(let message):
+            state.message = message
+        default:
+            break
+        }
+    }
+    
+    let store = await Store(
+        initialState: initialState,
+        reducer: reducer,
+        effects: []
+    )
+    
+    var effectCompleted = false
+    let slowEffect: Effect<TestState, TestAction> = { action, state in
+        switch action {
+        case .increment:
+            do {
+                try await Task.sleep(nanoseconds: 100_000_000) // 100ms
+                effectCompleted = true
+                return .setMessage("Effect completed")
+            } catch {
+                // Cancelled
+                return nil
+            }
+        default:
+            return nil
+        }
+    }
+    
+    let task = await store.executeEffect(slowEffect, for: .increment)
+    
+    // Give the effect time to start
+    try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+    
+    // Cancel the effect before it completes
+    task.cancel()
+    
+    // Wait a bit longer than the effect would take
+    try await Task.sleep(nanoseconds: 150_000_000) // 150ms
+    
+    #expect(effectCompleted == false)
+    #expect(await store.currentState.message == "")
+}
+
+@Test func testCancelAllEffects() async throws {
+    let initialState = TestState()
+    let reducer: Reducer<TestState, TestAction> = { state, action in
+        switch action {
+        case .increment:
+            state.count += 1
+        case .setMessage(let message):
+            state.message = message
+        default:
+            break
+        }
+    }
+    
+    let store = await Store(
+        initialState: initialState,
+        reducer: reducer,
+        effects: []
+    )
+    
+    var effect1Completed = false
+    var effect2Completed = false
+    
+    let effect1: Effect<TestState, TestAction> = { action, state in
+        do {
+            try await Task.sleep(nanoseconds: 100_000_000) // 100ms
+            effect1Completed = true
+            return .setMessage("Effect 1")
+        } catch {
+            return nil
+        }
+    }
+    
+    let effect2: Effect<TestState, TestAction> = { action, state in
+        do {
+            try await Task.sleep(nanoseconds: 100_000_000) // 100ms
+            effect2Completed = true
+            return .setMessage("Effect 2")
+        } catch {
+            return nil
+        }
+    }
+    
+    // Start multiple effects
+    await store.executeEffect(effect1, for: .increment)
+    await store.executeEffect(effect2, for: .increment)
+    
+    // Give effects time to start
+    try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+    
+    // Cancel all effects
+    await store.cancelEffects()
+    
+    // Wait for effects to complete
+    try await Task.sleep(nanoseconds: 150_000_000) // 150ms
+    
+    #expect(effect1Completed == false)
+    #expect(effect2Completed == false)
+    #expect(await store.currentState.message == "")
+}
+
+@Test func testEffectTaskCompletion() async throws {
+    let initialState = TestState()
+    let reducer: Reducer<TestState, TestAction> = { state, action in
+        switch action {
+        case .increment:
+            state.count += 1
+        case .setMessage(let message):
+            state.message = message
+        default:
+            break
+        }
+    }
+    
+    let store = await Store(
+        initialState: initialState,
+        reducer: reducer,
+        effects: []
+    )
+    
+    let quickEffect: Effect<TestState, TestAction> = { action, state in
+        // Quick effect that completes immediately
+        return .setMessage("Quick!")
+    }
+    
+    let task = await store.executeEffect(quickEffect, for: .increment)
+    
+    // Wait for effect to complete
+    await task.value
+    
+    #expect(await store.currentState.message == "Quick!")
+}

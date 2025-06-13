@@ -30,6 +30,9 @@ public final class Store<State, Action> where State: Sendable, Action: Sendable 
     /// Storage for state observation continuations
     private var continuations: [UUID: AsyncStream<State>.Continuation] = [:]
     
+    /// Storage for active effect tasks
+    private var effectTasks: Set<Task<Void, Never>> = []
+    
     /// Creates a new store with the given initial state, reducer, and effects.
     /// - Parameters:
     ///   - initialState: The initial state of the store.
@@ -51,13 +54,51 @@ public final class Store<State, Action> where State: Sendable, Action: Sendable 
         // Apply the reducer to update the state
         reducer(&currentState, action)
         
-        // Execute effects
+        // Execute effects sequentially to avoid sendable issues
         for effect in effects {
             if let nextAction = await effect(action, currentState) {
                 // Recursively dispatch any actions returned by effects
                 await dispatch(nextAction)
             }
         }
+    }
+    
+    /// Cancels all currently running effects.
+    /// This is useful when you need to stop all side effects, for example when cleaning up.
+    public func cancelEffects() {
+        // Cancel all active effect tasks
+        for task in effectTasks {
+            task.cancel()
+        }
+        effectTasks.removeAll()
+    }
+    
+    /// Executes a cancellable effect.
+    /// The returned task can be cancelled to stop the effect execution.
+    /// - Parameters:
+    ///   - effect: The effect function to execute
+    ///   - action: The action that triggered the effect
+    /// - Returns: A task that can be cancelled
+    @discardableResult
+    public func executeEffect(_ effect: @escaping Effect<State, Action>, for action: Action) -> Task<Void, Never> {
+        let task = Task { [weak self] in
+            guard let self else { return }
+            
+            if let nextAction = await effect(action, self.currentState) {
+                guard !Task.isCancelled else { return }
+                await self.dispatch(nextAction)
+            }
+        }
+        
+        effectTasks.insert(task)
+        
+        // Clean up when task completes
+        Task { [weak self] in
+            _ = await task.value
+            await self?.effectTasks.remove(task)
+        }
+        
+        return task
     }
     
     /// An AsyncSequence that emits the current state whenever it changes.
